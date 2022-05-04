@@ -1001,7 +1001,11 @@ export class RangeSelection implements BaseSelection {
     // This is the case where the user only selected the very end of the
     // first node so we don't want to include it in the formatting change.
     if (startOffset === firstNode.getTextContentSize()) {
-      const nextSibling = firstNode.getNextSibling();
+      let nextSibling = firstNode.getNextSibling();
+
+      if ($isElementNode(nextSibling) && nextSibling.isInline()) {
+        nextSibling = nextSibling.getFirstChild();
+      }
 
       if ($isTextNode(nextSibling)) {
         // we basically make the second node the firstNode, changing offsets accordingly
@@ -1913,15 +1917,6 @@ function internalResolveSelectionPoint(
           resolvedOffset++;
         }
       } else {
-        // Ensure if we're selecting the content of a decorator that we
-        // return null for this point, as it's not in the controlled scope
-        // of Lexical.
-        if (
-          (resolvedNode === null || $isDecoratorNode(resolvedNode)) &&
-          $isDecoratorNode(getNodeFromDOM(dom))
-        ) {
-          return null;
-        }
         const index = resolvedElement.getIndexWithinParent();
         // When selecting decorators, there can be some selection issues when using resolvedOffset,
         // and instead we should be checking if we're using the offset
@@ -2082,6 +2077,19 @@ function internalResolveSelectionPoints(
   );
   if (resolvedFocusPoint === null) {
     return null;
+  }
+  if (
+    resolvedAnchorPoint.type === 'element' &&
+    resolvedFocusPoint.type === 'element'
+  ) {
+    const anchorNode = getNodeFromDOM(anchorDOM);
+    const focusNode = getNodeFromDOM(focusDOM);
+    // Ensure if we're selecting the content of a decorator that we
+    // return null for this point, as it's not in the controlled scope
+    // of Lexical.
+    if ($isDecoratorNode(anchorNode) && $isDecoratorNode(focusNode)) {
+      return null;
+    }
   }
 
   // Handle normalization of selection when it is at the boundaries.
