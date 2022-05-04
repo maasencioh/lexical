@@ -144,7 +144,7 @@ Object.keys(wwwMappings).forEach((mapping) => {
   strictWWWMappings[`'${mapping}'`] = `'${wwwMappings[mapping]}'`;
 });
 
-async function build(name, inputFile, outputFile, isProd) {
+async function build(name, inputFile, outputFile, isProd, isTypeScript) {
   const inputOptions = {
     external(modulePath, src) {
       return externals.includes(modulePath);
@@ -202,7 +202,21 @@ async function build(name, inputFile, outputFile, isProd) {
             {noMinify: !isProd},
           ],
         ],
-        presets: ['@babel/preset-react'],
+        presets: isTypeScript
+          ? [
+              [
+                '@babel/preset-typescript',
+                {allExtensions: true, allowDeclareFields: true},
+              ],
+              '@babel/preset-react',
+            ]
+          : [
+              [
+                '@babel/preset-typescript',
+                {allExtensions: true, allowDeclareFields: true},
+              ],
+              '@babel/preset-react',
+            ],
       }),
       {
         resolveId(importee, importer) {
@@ -296,10 +310,11 @@ function getFileName(fileName, isProd) {
 
 const packages = [
   {
+    isTypeScript: true,
     modules: [
       {
         outputFileName: 'Lexical',
-        sourceFileName: 'index.js',
+        sourceFileName: 'index.ts',
       },
     ],
     name: 'Lexical Core',
@@ -561,7 +576,7 @@ const packages = [
 ];
 
 packages.forEach((pkg) => {
-  const {name, sourcePath, outputPath, modules} = pkg;
+  const {name, sourcePath, outputPath, modules, isTypeScript = false} = pkg;
   modules.forEach((module) => {
     const {sourceFileName, outputFileName} = module;
     let inputFile = path.resolve(path.join(`${sourcePath}${sourceFileName}`));
@@ -572,6 +587,7 @@ packages.forEach((pkg) => {
         path.join(`${outputPath}${getFileName(outputFileName, isProduction)}`),
       ),
       isProduction,
+      isTypeScript,
     );
     if (isRelease) {
       build(
@@ -581,6 +597,7 @@ packages.forEach((pkg) => {
           path.join(`${outputPath}${getFileName(outputFileName, false)}`),
         ),
         false,
+        isTypeScript,
       );
       buildForkModule(outputPath, outputFileName);
     }

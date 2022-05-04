@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "module": "esnext",
+    "allowSyntheticDefaultImports": true,
+    "jsx": "preserve",
+    "noEmit": true,
+    "strict": true,
+    "baseUrl": "./packages",
+    "paths": {
+      "shared/getDOMSelection": "shared/src/getDOMSelection.js",
+      "shared/simpleDiffWithCursor": "shared/src/simpleDiffWithCursor.js",
+      "shared/invariant": "shared/src/invariant.js",
+      "shared/environment": "shared/src/environment.js",
+      "shared/useLayoutEffect": "shared/src/useLayoutEffect.js",
+      "shared/canUseDOM": "shared/src/canUseDOM.js"
+    }
+  },
+  "include": ["./packages"]
+}
